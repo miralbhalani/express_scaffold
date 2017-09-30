@@ -1,31 +1,25 @@
 
 'use strict'
 var express = require("express");
-var _ = require("lodash");
-var S = require("string");
+var router = express.Router();
 
-var validator = require("../../lib/validator/validator");
 
 var schema = require("./schema");
-
-var router = express.Router();
 var db = require("../../lib/resources/db")
-
-var MongoQs = require("mongo-querystring");
-
-var ObjectId = require("mongoskin").ObjectId;
-
-
+var validator = require("../../lib/validator/validator");
 var commonOptions = require("../../lib/routeBuilder/commonOptions");
 var routeBuilder = require("../../lib/routeBuilder/routeBuilder")
 var errorHandler = require("../../lib/routeBuilder/errorHandler")
 var encrytion = require("../../lib/utils/encrytion")
 
+
 commonOptions.validations = require('./validations');
 commonOptions.schema = require('./schema');
 // routeBuilder.build(router,commonOptions);
 
-
+/**
+ * this route will be used to get hash and salt from password
+ */
 router.get("/getsaltandhash/:password",function(req,res){
 
     encrytion.getSaltAsync()
@@ -46,56 +40,68 @@ router.get("/getsaltandhash/:password",function(req,res){
 })
 
 
+/**
+ * NOTE: this login function is used from routes/index.js
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ */
 function login(req,res){
     
-
-    // encrytion.getSalt
-    
-    // $2a$10$ExKF4q3AA43hsYZ8S8AL6e
-    encrytion.getHashAsync("root","$2a$10$ExKF4q3AA43hsYZ8S8AL6e")
-        .then(function(hash){
-            res.send(hash)
-        })
-    
-
     /**
-     * Validate
+     * Validate if login
      */
-    // console.log("-------")
-    // console.log(req.body);
-    // errorHandler.ifJoiError(validator.validate(commonOptions.validations.login,req.body),res)
+    errorHandler.ifJoiError(validator.validate(commonOptions.validations.login,req.body),res)
     
-    // schema.table.findOne({
-    //     where:{
-    //         email:req.body.email,
-    //     }})
-    //     .then(function(data){
-    //         if(data){
-    //             encrytion.getHashAsync(req.body.password,data.salt)
-    //                 .then(function(hash){
-
-    //                     if(hash == data.password){
-    //                         res.send({
-    //                             token: encrytion.jwtEncode({
-    //                                 id:data.id
-    //                             })
-    //                         });
-    //                     }
-    //                     else{
-    //                         errorHandler.invalidUP(res)
-    //                     } 
-    //                 })
-    //                 .catch(function(err){
-    //                     errorHandler.unexpectedError(err,res)
-    //                 })
-    //         }
-    //         else{
-    //             errorHandler.invalidUP(res)
-    //         }
-    //     })
-    //     .catch(function(err){
-    //         errorHandler.unexpectedDbError(err,"Login",res)
-    //     })
+    /**
+     * #schema.table is a sequalize object on which 
+     * we can fire all db operation of sequalize for perticular table
+     * 
+     * hear to check validate login we will search wia email first 
+     * once we have data of user with email we will get SALT  
+     * from it and will apply salt on given password if it matches with 
+     * db password then hurrey we will give JWT token
+     */
+    schema.table.findOne({
+        where:{
+            email:req.body.email,
+        }})
+        .then(function(data){
+            /**
+             * #data has user information with given email
+             */
+            if(data){
+                /**
+                 * get hash from obtained salt in data #data.salt
+                 */
+                encrytion.getHashAsync(req.body.password,data.salt)
+                    .then(function(hash){
+                        /**
+                         * if we have matched generated hash with db password hash
+                         * then hurrey we can give JWT token
+                         */
+                        if(hash == data.password){
+                            res.send({
+                                token: encrytion.jwtEncode({
+                                    id:data.id
+                                })
+                            });
+                        }
+                        else{
+                            errorHandler.invalidUP(res)
+                        } 
+                    })
+                    .catch(function(err){
+                        errorHandler.unexpectedError(err,res)
+                    })
+            }
+            else{
+                errorHandler.invalidUP(res)
+            }
+        })
+        .catch(function(err){
+            errorHandler.unexpectedDbError(err,"Login",res)
+        })
 
 }
 
