@@ -1,0 +1,31 @@
+{
+  "name": "sample",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "bcrypt": "^1.0.3",
+    "bluebird": "^3.5.0",
+    "body-parser": "~1.17.1",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.3",
+    "express": "~4.15.2",
+    "immutable": "^3.8.1",
+    "jade": "~1.11.0",
+    "joi": "^10.6.0",
+    "jwt-simple": "^0.5.1",
+    "lodash": "^4.17.4",
+    "mongo-querystring": "^4.1.1",
+    "mongodb": "^2.2.31",
+    "mongoskin": "^2.1.0",
+    "morgan": "~1.8.1",
+    "mysql": "^2.14.1",
+    "mysql2": "^1.4.2",
+    "sequelize": "^4.11.7",
+    "sequelize-querystring": "^0.7.6",
+    "serve-favicon": "~2.4.2",
+    "string": "^3.3.3"
+  }
+}
