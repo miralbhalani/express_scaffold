@@ -7,7 +7,7 @@ var router = express.Router();
 var schema = require("./schema");
 var db = require("../../lib/resources/db")
 var validator = require("../../lib/validator/validator");
-var commonOptions = require("../../lib/routeBuilder/commonOptions");
+var commonOptions = require("../../lib/routeBuilder/commonOptions")()
 var routeBuilder = require("../../lib/routeBuilder/routeBuilder")
 var errorHandler = require("../../lib/routeBuilder/errorHandler")
 var encrytion = require("../../lib/utils/encrytion")
@@ -47,7 +47,8 @@ router.get("/getsaltandhash/:password",function(req,res){
  * @param {*} res 
  */
 function login(req,res){
-    
+
+
     /**
      * Validate if login
      */
@@ -81,10 +82,18 @@ function login(req,res){
                          * then hurrey we can give JWT token
                          */
                         if(hash == data.password){
+                            
                             res.send({
                                 token: encrytion.jwtEncode({
                                     id:data.id
-                                })
+                                }),
+                                loginInfo:{
+                                    collage_id:data.collage_id,
+                                    full_name:data.full_name,
+                                    email:data.email,
+                                    contact_number:data.contact_number,
+                                    last_login:data.last_login
+                                }
                             });
                         }
                         else{
